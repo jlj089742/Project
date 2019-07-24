@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huiyou.mapper.ItemMapper">
+	<select id="selPassItem" resultType="Item" parameterType="Item">
+		SELECT item.*,member.name AS memname FROM item_pass LEFT JOIN item ON
+		item.id=item_pass.itemid
+		LEFT JOIN member ON member.id=item.memid
+		<where>
+			item_pass.passid=#{memid}
+			<if test="type!=0 and type!=null">
+				and item.type=#{type}
+			</if>
+			<if test="pass!=0 and pass!=null">
+				and item.pass=#{pass}
+			</if>
+		</where>
+		ORDER BY item.createtime DESC
+	</select>
+
+	<select id="selCopyItem" resultType="Item" parameterType="Item">
+		SELECT item.*,member.name AS memname FROM item_copy LEFT JOIN item ON
+		item.id=item_copy.itemid
+		LEFT JOIN member ON member.id=item.memid
+		<where>
+			item_copy.copyid=#{memid}
+			<if test="type!=0 and type!=null">
+				and item.type=#{type}
+			</if>
+			<if test="pass!=0 and pass!=null">
+				and item.pass=#{pass}
+			</if>
+		</where>
+		ORDER BY item.createtime DESC
+	</select>
+
+	<select id="selMyItem" resultType="Item" parameterType="Item">
+		SELECT item.*,member.name AS memname FROM item
+		LEFT JOIN member ON
+		member.id=item.memid
+		<where>
+			item.memid=#{memid}
+			<if test="type!=0 and type!=null">
+				and item.type=#{type}
+			</if>
+			<if test="pass!=0 and pass!=null">
+				and item.pass=#{pass}
+			</if>
+		</where>
+		ORDER BY item.createtime DESC
+	</select>
+
+	<select id="selItemContent" resultType="ItemContent"
+		parameterType="ItemContent">
+		SELECT item_content.* FROM item_content
+		<where>
+			item_content.itemid=#{itemid}
+		</where>
+	</select>
+
+	<insert id="addItemContent" parameterType="ItemContent">
+		insert into
+		item_content(itemid,leavetype,place,startdate,enddate)
+		values(#{itemid},#{leavetype},#{place},#{time1},#{time2})
+	</insert>
+
+	<insert id="addItem" parameterType="Item">
+		insert into
+		item(memid,type,day,cost,reason,createtime,pass)
+		values(#{memid},#{type},#{day},#{cost},#{reason},now(),-1)
+	</insert>
+
+	<insert id="addItempass" parameterType="Map">
+		insert into
+		item_pass(itemid,passid)
+		values(#{itemid},#{passid})
+	</insert>
+
+	<insert id="addItemcopy" parameterType="Map">
+		insert into
+		item_copy(itemid,copyid)
+		values(#{itemid},#{copyid})
+	</insert>
+
+	<select id="selNewItemId" resultType="Integer">
+		SELECT item.id FROM item
+		order by id DESC limit 1
+	</select>
+
+	<update id="checkItem" parameterType="Integer">
+		update item SET item.pass=1 WHERE item.id = #{itemid}
+	</update>
+
+</mapper>

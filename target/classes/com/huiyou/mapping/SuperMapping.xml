@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huiyou.mapper.SuperMapper">
+	<select id="superLogin" resultType="Map" parameterType="Map">
+		SELECT
+		member.id,member.name FROM member
+		WHERE member.super=1 and
+		member.username=#{username} and member.password=#{password}
+	</select>
+	<select id="selMember" resultType="Member" parameterType="Member">
+		SELECT member.* FROM member
+		<where>
+			<if test="id!=0 and id!=null">
+				member.id=#{id}
+			</if>
+			<if test="name!='' and name!=null">
+				and member.name like concat('%',#{name},'%')
+			</if>
+			<if test="phone!='' and phone!=null">
+				and member.phone like concat('%',#{phone},'%')
+			</if>
+		</where>
+	</select>
+
+	<select id="selItem" resultType="Item" parameterType="Item">
+		SELECT item.*,member.name AS memname FROM item
+		LEFT JOIN member ON
+		member.id=item.memid
+		<where>
+			<if test="id!=0 and id!=null">
+				item.id=#{id}
+			</if>
+			<if test="memname!='' and memname!=null">
+				and member.name like concat('%',#{memname},'%')
+			</if>
+			<if test="type!=0 and type!=null">
+				and item.type=#{type}
+			</if>
+			<if test="pass!=0 and pass!=null">
+				and item.pass=#{pass}
+			</if>
+			<if test="choosetime!='' and choosetime!=null">
+				and item.createtime &gt; #{mintime} and
+				item.createtime
+				&lt; #{maxtime}
+			</if>
+		</where>
+		ORDER BY item.id
+	</select>
+
+	<select id="selDepartment" resultType="Department"
+		parameterType="Department">
+		SELECT department.*,company.name AS comname FROM department LEFT JOIN
+		company ON company.id=department.comid
+		<where>
+			<if test="id!=0 and id!=null">
+				department.id=#{id}
+			</if>
+			<if test="name!='' and name!=null">
+				and department.name like concat('%',#{name},'%')
+			</if>
+			<if test="comname!='' and comname!=null">
+				and company.name like concat('%',#{comname},'%')
+			</if>
+		</where>
+	</select>
+
+	<select id="selDepMember" resultType="Member" parameterType="Member">
+		SELECT member.* FROM member LEFT
+		JOIN depmem ON depmem.memid=member.id
+		LEFT JOIN department ON
+		department.id=depmem.depid
+		LEFT JOIN company ON
+		company.id=department.comid
+		<where>
+			depmem.depid=#{depid}
+		</where>
+	</select>
+
+	<update id="updateMember">
+		update member SET
+		username=#{username},password=#{password},name=#{name},sex=#{sex},phone=#{phone}
+		where id=#{id}
+	</update>
+
+	<update id="updateSignRule">
+		UPDATE sign SET sign.signdate=CASE sign.id
+		WHEN 1 THEN #{amcheck}
+		WHEN 2
+		THEN #{amleave}
+		WHEN 3 THEN #{pmcheck}
+		WHEN 4 THEN #{pmleave}
+		END,
+		sign.place=CASE sign.id
+		WHEN 1 THEN #{place}
+		END,
+		sign.type=CASE sign.id
+		WHEN 1 THEN #{type}
+		END
+		<where>sign.id IN (1,2,3,4)</where>
+	</update>
+
+	<select id="selSignRule" resultType="Sign" parameterType="Sign">
+		SELECT sign.* FROM sign
+		<where>
+			sign.memid=0
+		</where>
+	</select>
+
+	<select id="selNormalSign" resultType="Integer" parameterType="Map">
+		SELECT COUNT(sign.id) FROM sign LEFT JOIN depmem ON
+		depmem.memid=sign.memid
+		<where>
+			date_format(sign.signdate,'%Y-%m')=#{time} and sign.type=1
+			<if test="depid!=0 and depid!=null">
+				and depmem.depid=#{depid}
+			</if>
+		</where>
+	</select>
+
+	<select id="selLateSign" resultType="Integer" parameterType="Map">
+		SELECT COUNT(sign.id) FROM sign LEFT JOIN depmem ON
+		depmem.memid=sign.memid
+		<where>
+			date_format(sign.signdate,'%Y-%m')=#{time} and sign.type=2
+			<if test="depid!=0 and depid!=null">
+				and depmem.depid=#{depid}
+			</if>
+		</where>
+	</select>
+
+	<select id="selEarlySign" resultType="Integer" parameterType="Map">
+		SELECT COUNT(sign.id) FROM sign LEFT JOIN depmem ON
+		depmem.memid=sign.memid
+		<where>
+			date_format(sign.signdate,'%Y-%m')=#{time} and sign.type=3
+			<if test="depid!=0 and depid!=null">
+				and depmem.depid=#{depid}
+			</if>
+		</where>
+	</select>
+
+	<select id="selOvertime" resultType="Integer" parameterType="Map">
+		SELECT COUNT(item.id) FROM depmem LEFT JOIN item ON
+		item.memid=depmem.memid
+		<where>
+			date_format(item.createtime,'%Y-%m')=#{time} and item.type=5 and
+			item.pass=1
+			<if test="depid!=0 and depid!=null">
+				and depmem.depid=#{depid}
+			</if>
+		</where>
+	</select>
+
+	<select id="selWorkout" resultType="Integer" parameterType="Map">
+		SELECT COUNT(item.id) FROM depmem LEFT JOIN item ON
+		item.memid=depmem.memid
+		<where>
+			date_format(item.createtime,'%Y-%m')=#{time} and item.type=2 and
+			item.pass=1
+			<if test="depid!=0 and depid!=null">
+				and depmem.depid=#{depid}
+			</if>
+		</where>
+	</select>
+
+	<select id="selLeave" resultType="Integer" parameterType="Map">
+		SELECT COUNT(item.id) FROM depmem LEFT JOIN item ON
+		item.memid=depmem.memid
+		<where>
+			date_format(item.createtime,'%Y-%m')=#{time} and item.type=3 and
+			item.pass=1
+			<if test="depid!=0 and depid!=null">
+				and depmem.depid=#{depid}
+			</if>
+		</where>
+	</select>
+
+	<select id="selLostSign" resultType="Map" parameterType="Map">
+		SELECT sign.*,depmem.depid,COUNT(*)AS count FROM sign LEFT JOIN depmem
+		ON depmem.memid=sign.memid
+		<where>
+			date_format(sign.signdate,'%Y-%m')=#{time}
+			<if test="depid!=0 and depid!=null">
+				and depmem.depid=#{depid}
+			</if>
+		</where>
+		GROUP BY DATE(sign.signdate),sign.memid HAVING count&lt; 2
+	</select>
+
+	<select id="selSignDay" resultType="Sign" parameterType="Integer">
+		SELECT sign.* from sign
+		<where>
+			sign.memid=#{memid}
+		</where>
+		GROUP BY DATE(sign.signdate)
+	</select>
+
+	<select id="selNowork" resultType="Integer" parameterType="Map">
+		SELECT SUM(nowork) FROM autocheck LEFT JOIN depmem ON
+		depmem.memid=autocheck.memid
+		<where>
+			<if test="depid!=0 and depid!=null">
+				depmem.depid=#{depid}
+			</if>
+			and date_format(autocheck.date,'%Y-%m')=#{time}
+		</where>
+	</select>
+
+	<select id="selLeaveList" resultType="Map" parameterType="Map">
+		SELECT member.id,member.name,SUM(item.day)AS sumday,COUNT(item.id)AS
+		sum FROM member LEFT JOIN item ON item.memid=member.id LEFT JOIN
+		depmem ON depmem.memid=member.id
+		<where>
+			<if test="depid!=0 and depid!=null">
+				depmem.depid=#{depid}
+			</if>
+			and date_format(item.createtime,'%Y-%m')=#{time} and item.type=3
+		</where>
+		GROUP BY member.id
+	</select>
+
+	<select id="selNoworkList" resultType="Map" parameterType="Map">
+		SELECT member.id,member.name,SUM(autocheck.nowork)AS sumday FROM
+		member
+		LEFT JOIN autocheck ON autocheck.memid=member.id LEFT JOIN
+		depmem ON
+		depmem.memid=member.id
+		<where>
+			<if test="depid!=0 and depid!=null">
+				depmem.depid=#{depid}
+			</if>
+			and date_format(autocheck.date,'%Y-%m')=#{time}
+		</where>
+		GROUP BY member.id
+	</select>
+
+
+</mapper>

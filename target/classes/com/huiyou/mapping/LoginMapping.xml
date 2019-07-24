@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huiyou.mapper.LoginMapper">
+	<select id="selUser" resultType="Member" parameterType="Member">
+		SELECT member.*,department.name AS depname,company.name AS
+		comname,department.id AS depid,company.id AS comid FROM member LEFT
+		JOIN depmem ON depmem.memid=member.id
+		LEFT JOIN department ON
+		department.id=depmem.depid
+		LEFT JOIN company ON
+		company.id=department.comid
+		<where>
+			member.username=#{username}
+			and member.password=#{password}
+		</where>
+	</select>
+
+	<update id="updateMember" parameterType="Member">
+		update member SET
+		password=#{password}
+		where id=#{id}
+	</update>
+
+</mapper>

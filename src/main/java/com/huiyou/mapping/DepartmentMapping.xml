@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.huiyou.mapper.DepartmentMapper">
+
+	<select id="selCompany" resultType="Map" parameterType="Integer">
+		SELECT DISTINCT company.* FROM company LEFT JOIN department ON
+		department.comid=company.id LEFT JOIN depmem ON
+		depmem.depid=department.id LEFT JOIN member ON depmem.memid=member.id
+		<where>
+			member.id=#{id}
+		</where>
+	</select>
+
+	<select id="selDepartment" resultType="Map"
+		parameterType="Department">
+		SELECT department.id,department.name FROM department
+		<where>
+			department.comid=#{comid}
+		</where>
+	</select>
+
+	<select id="selMember" resultType="Map" parameterType="Member">
+		SELECT member.id,member.name FROM member LEFT
+		JOIN depmem ON
+		depmem.memid=member.id
+		LEFT JOIN department ON
+		department.id=depmem.depid
+		LEFT JOIN company ON
+		company.id=department.comid
+		<where>
+			depmem.depid=#{depid}
+		</where>
+	</select>
+
+	<select id="selMemberInfo" resultType="Map" parameterType="Member">
+		SELECT member.id,member.name,member.sex,member.phone,department.name
+		AS depname,company.name AS
+		comname FROM member LEFT
+		JOIN depmem ON
+		depmem.memid=member.id
+		LEFT JOIN department ON
+		department.id=depmem.depid
+		LEFT JOIN company ON
+		company.id=department.comid
+		<where>
+			member.id=#{id}
+		</where>
+	</select>
+
+	<insert id="addMember" parameterType="Member">
+		insert into
+		depmem(memid,depid)
+		values(#{id},#{depid})
+	</insert>
+
+	<select id="oftenMember" resultType="Map" parameterType="Member">
+		SELECT member.id,member.name FROM relation LEFT JOIN member ON
+		member.id=relation.oftenid
+		<where>
+			relation.memid=#{id}
+		</where>
+	</select>
+
+	<insert id="addOftenMember" parameterType="Map">
+		insert into
+		relation(memid,oftenid)
+		values(#{memid},#{oftenid})
+	</insert>
+
+	<delete id="delOftenMember" parameterType="Map">
+		DELETE FROM relation
+		WHERE relation.memid=#{memid} and relation.oftenid=#{oftenid}
+	</delete>
+
+</mapper>
